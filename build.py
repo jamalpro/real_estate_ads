@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
-"""Regenerate real_estate_ads.csv and real_estate_ads.html from real_estate_ads.json.
+"""Regenerate real_estate_ads.csv and dashboard HTML files from real_estate_ads.json.
 
 real_estate_ads.json is the source of truth. This script recomputes the derived
-fields on each ad, validates the dataset, and writes both output files.
+fields on each ad, validates the dataset, and writes the spreadsheet export plus
+both dashboard entry points:
+
+- real_estate_ads.html for the explicit dashboard URL
+- index.html for the GitHub Pages project root URL
+
 Run it after any change to the JSON or to page.template.html.
 """
 
@@ -17,6 +22,7 @@ ROOT = Path(__file__).resolve().parent
 JSON_PATH = ROOT / "real_estate_ads.json"
 CSV_PATH = ROOT / "real_estate_ads.csv"
 HTML_PATH = ROOT / "real_estate_ads.html"
+INDEX_PATH = ROOT / "index.html"
 TEMPLATE_PATH = ROOT / "page.template.html"
 
 # Variant labels that came from different ingest batches and mean the same thing.
@@ -188,7 +194,9 @@ def write_html(db):
         sys.exit(f"{TEMPLATE_PATH.name} is missing the {{{{ADS_JSON}}}} placeholder")
     # '<' cannot appear raw inside the data island or it can close the script tag early.
     payload = json.dumps(db, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
-    HTML_PATH.write_text(template.replace("{{ADS_JSON}}", payload), encoding="utf-8")
+    html = template.replace("{{ADS_JSON}}", payload)
+    HTML_PATH.write_text(html, encoding="utf-8")
+    INDEX_PATH.write_text(html, encoding="utf-8")
 
 
 def main():
@@ -200,7 +208,7 @@ def main():
     write_csv(ads)
     write_html(db)
 
-    print(f"{len(ads)} ads -> {CSV_PATH.name}, {HTML_PATH.name}")
+    print(f"{len(ads)} ads -> {CSV_PATH.name}, {HTML_PATH.name}, {INDEX_PATH.name}")
     print(f"  areas: {len({a['area_group'] for a in ads if a['area_group']})} groups"
           f" from {len({a['area'] for a in ads if a['area']})} raw labels")
     for label, variants in sorted(merges):
