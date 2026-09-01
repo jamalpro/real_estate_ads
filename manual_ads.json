@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "created_at": "2026-09-01",
+    "last_updated": "2026-09-01",
+    "record_count": 1,
+    "note": "Manual ads added directly from ChatGPT conversation after the main generated database. The page merges these records with real_estate_ads.json at load time."
+  },
+  "ads": [
+    {
+      "id": "798a26ab94",
+      "source": "Manual ChatGPT add 2026-09-01",
+      "stamp_raw": "9/1/26, 4:41 PM",
+      "date_iso": "2026-09-01T16:41:00-07:00",
+      "date": "2026-09-01",
+      "transaction": "بيع",
+      "transaction_group": "بيع",
+      "category": "سكني",
+      "category_group": "سكني",
+      "area": "الميسات",
+      "area_group": "الميسات",
+      "price": 400000,
+      "currency": "$",
+      "currency_norm": "USD",
+      "price_usd": 400000.0,
+      "price_text": "المطلوب 400 الف منهي",
+      "size_m2": 300.0,
+      "land_dunum": null,
+      "floor": "بلاطة كاملة",
+      "price_per_m2": 1333.33,
+      "score": 7,
+      "has_photos": true,
+      "tags": [
+        "سطح",
+        "طابو أخضر",
+        "صور",
+        "جامع أبو النور",
+        "بلاطة كاملة"
+      ],
+      "dedupe_key": "a2c415ae9188",
+      "raw_text": "للبيع شقه🎯\nطلعة الميسات \nبلاطه كامله\nقبل جامع ابو النور\nمساحه 300 متر\nمع السطح مساحه 300 متر ورقه طابو لحالها\n5 غرف وصالون\nبناء اربع طوابق\nالاتجاهات قبلي شرقي\nالكسوة قديمه نضيفه\nطابو اخضر 2400 سهم\nالمطلوب 400 الف منهي\nيوجد صور🎯"
+    }
+  ]
+}
