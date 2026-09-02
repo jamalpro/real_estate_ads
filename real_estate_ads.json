@@ -2,7 +2,7 @@
   "metadata": {
     "created_at": "2026-09-01",
     "rebuilt_at": "2026-09-02T01:51:21+00:00",
-    "record_count": 270,
+    "record_count": 272,
     "source_files": [
       "/mnt/data/Pasted text.txt",
       "Pasted text(1).txt (file_search turn12file0)"
@@ -16,10 +16,10 @@
       "updated_at": "2026-09-01T13:47:00-07:00"
     },
     "manual_ads_merged": {
-      "merged_at": "2026-09-02T17:09:09+00:00",
+      "merged_at": "2026-09-02T17:37:47+00:00",
       "source_file": "manual_ads.json",
-      "added_records": 14,
-      "skipped_duplicates": 2
+      "added_records": 2,
+      "skipped_duplicates": 0
     }
   },
   "ads": [
@@ -8694,6 +8694,80 @@
       "needs_review": false,
       "dedupe_key": "قيادة الشرطة|اطفائية|سوق البالة|120|130000",
       "raw_text": "للبيع⭕\n مقابل قياده الشرطة  (اطفائية) عند سوق البالة\n طابق اول مع مصعد ⭕\nمساحة 120 م⭕\n3 غرف وصالون⭕\nتجاه شمالي غربي ⭕\nإكساء جيد المنافع قديمة \nطابو اخضر ٢٤٠٠⭕\nسعر 130الف $⭕"
+    },
+    {
+      "id": "82859d0c66",
+      "source": "ChatGPT LLM parsed WhatsApp paste 2026-09-02",
+      "stamp_raw": "2026-09-02 10:13:16",
+      "date_iso": "2026-09-02T10:13:16-07:00",
+      "date": "2026-09-02",
+      "transaction": "إيجار",
+      "transaction_group": "إيجار",
+      "category": "شقة سكنية",
+      "category_group": "سكني",
+      "area": "الفحامة",
+      "area_group": "الفحامة",
+      "subarea": "سوق المواسم",
+      "price": 800,
+      "currency": "$",
+      "currency_norm": "USD",
+      "price_usd": 800.0,
+      "price_text": "مطلوب 800 دولار بالشهر وعمولة مكتب",
+      "size_m2": 160.0,
+      "land_dunum": null,
+      "floor": "طابق ثاني",
+      "price_per_m2": null,
+      "score": 6,
+      "has_photos": true,
+      "tags": [
+        "مفروشة",
+        "خمس غرف وصالون",
+        "كسوة وسط",
+        "سوق المواسم",
+        "فيديو",
+        "عمولة مكتب"
+      ],
+      "dedupe_key": "82859d0c6661",
+      "raw_text": "[9/2/26, 10:13:16 AM] : للاجار شقة💥\n مفروشة خمس غرف وصالون مساحة 160 م كسوة وفرش وسط طابق تاني بالفحامة سوق  المواسم مطلوب 800 دولار بالشهر\nوعمولة مكتب\nيوجد فيديو💥م .مج"
+    },
+    {
+      "id": "3606bd4418",
+      "source": "ChatGPT LLM parsed WhatsApp paste 2026-09-02",
+      "stamp_raw": "2026-09-02 10:34:07",
+      "date_iso": "2026-09-02T10:34:07-07:00",
+      "date": "2026-09-02",
+      "transaction": "بيع",
+      "transaction_group": "بيع",
+      "category": "محل تجاري",
+      "category_group": "تجاري",
+      "area": "الفحامة",
+      "area_group": "الفحامة",
+      "subarea": "قرب قيادة الشرطة",
+      "price": 600000,
+      "currency": "$",
+      "currency_norm": "USD",
+      "price_usd": 600000.0,
+      "price_text": "مطلوب 600 ألف $",
+      "size_m2": 300.0,
+      "land_dunum": null,
+      "floor": "أرضي + قبو",
+      "price_per_m2": 2000.0,
+      "score": 8,
+      "has_photos": true,
+      "tags": [
+        "محل تجاري",
+        "منطقة حيوية",
+        "قرب قيادة الشرطة",
+        "أرضي 80م",
+        "قبو 120م",
+        "كسوة وسط",
+        "طابو 2400",
+        "فيديو"
+      ],
+      "needs_review": true,
+      "review_reason": "النص يقول مساحة 300 متر، لكن التفصيل الداخلي يذكر 80م أرضي + 120م قبو = 200م؛ تم اعتماد الرقم الإجمالي المصرّح مع وضع مراجعة.",
+      "dedupe_key": "3606bd4418ed",
+      "raw_text": "[9/2/26, 10:34:07 AM] : 🌷محل تجاري للبيع بمنطقة كتير حيوية قرب قيادة الشرطة بالفحامة مساحة ٣٠٠مترمؤلف من ٨٠متر ارضي وقبو ١٢٠متر كسوة وسط طابو ٢٤٠٠\nمطلوب ٦٠٠الف $🌷يوجد فيديو للزبون حصرا"
     }
   ]
 }
