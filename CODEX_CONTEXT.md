@@ -6,37 +6,67 @@ This repository powers a static, browser-only dashboard for Syrian real estate W
 
 Primary user goal: quickly find good investment opportunities in Syrian real estate ads, especially by area, price, property type, transaction type, size, and free-text criteria.
 
-The project should remain simple, portable, and static. It should work from a local file opened directly in a browser and should also work when hosted on GitHub Pages.
+The project should remain simple, portable, and static. It should work when hosted on GitHub Pages and should not require a backend.
+
+## Actual current workflow
+
+The current operating workflow is **ChatGPT-assisted ingestion**:
+
+1. The user copies one ad or multiple ads from WhatsApp.
+2. The user pastes the raw ad text into this ChatGPT conversation.
+3. ChatGPT parses every ad into structured JSON records.
+4. ChatGPT appends those records to the repo data, extracting key facts:
+   - area / neighborhood
+   - price
+   - currency
+   - transaction type: sale, rent, wanted purchase, etc.
+   - property type: residential, commercial, land, warehouse, office, etc.
+   - size
+   - floor / physical position
+   - photos/video indicator
+   - tags such as `طابو أخضر`, `سطح`, `حديقة`, `مدخل مستقل`, `تجاري`
+   - derived fields such as `price_usd`, `price_per_m2`, `score`, `dedupe_key`
+5. ChatGPT pushes the updated JSON/page files to GitHub.
+6. GitHub Pages serves the updated static dashboard.
+
+This means the parser must be durable and reusable across past and future ads. Do not treat parser fixes as one-off UI corrections only.
 
 ## Current repository structure
 
 - `real_estate_ads.json`
-  - Generated/source database for the main ad records.
+  - Main ad database.
   - Contains `metadata` and an `ads` array.
-  - Do not casually overwrite this large file from an old local copy.
+  - The long-term goal is to append parsed ChatGPT records here directly and keep it authoritative.
+  - Do not overwrite this large file from a stale local copy.
+
+- `append_ads.py`
+  - Durable WhatsApp-ad parser and append workflow.
+  - Implements the parsing contract ChatGPT should follow when the user pastes raw WhatsApp ads.
+  - It parses Arabic WhatsApp text, dedupes, appends to `real_estate_ads.json`, and can run `build.py`.
+  - Keep this script aligned with the ChatGPT workflow.
 
 - `manual_ads.json`
-  - Small append-only layer for ads added manually from the ChatGPT conversation.
-  - The live `index.html` merges this with `real_estate_ads.json` at load time.
+  - Temporary/small append layer for manually added records when editing the main JSON is risky.
+  - Prefer direct append to `real_estate_ads.json` once the parser workflow is stable.
 
 - `data_corrections.json`
-  - Small correction layer for known parser misses.
-  - Use this when one or a few generated records need fixes but regenerating the full database is risky.
-  - Corrections are keyed by `id` or `dedupe_key` and applied by `index.html` after loading data.
+  - Correction layer for known parser misses.
+  - Use this to patch already-generated records when rewriting the main database is risky.
+  - Long-term, fold corrections back into the parser and regenerated database.
 
 - `index.html`
   - Current GitHub Pages entrypoint and polished static dashboard.
   - Loads `real_estate_ads.json`, `manual_ads.json`, and `data_corrections.json`.
   - Applies client-side repairs for missing price, area, and size from `raw_text`.
-  - Supports favorites using localStorage with a cookie fallback.
+  - Supports favorites using localStorage with cookie fallback.
 
 - `build.py`, `page.template.html`, `real_estate_ads.html`, `real_estate_ads.csv`
-  - Earlier generated-dashboard workflow. Keep it available, but be careful not to regress the newer `index.html` entrypoint.
+  - Earlier generated-dashboard workflow. Keep it available, but avoid regressing the newer `index.html` entrypoint.
 
 - `smoke_test.js`
-  - Node-based smoke test for the generated HTML. If the main dashboard remains `index.html`, add/update tests for `index.html` too.
+  - Node-based smoke test for the older generated HTML. Add/update tests for `index.html` when possible.
 
-## Critical parser lessons
+## Permanent parser rules
 
 ### Arabic thousand prices
 
@@ -46,6 +76,7 @@ Do not miss prices written as Arabic prose, especially:
 - `100 ألف`
 - `400 الف منهي`
 - `المطلوب 250 الف`
+- `100 الف وبازار`
 
 For sale ads, these should normally parse as thousands of USD unless context clearly says otherwise:
 
@@ -53,8 +84,6 @@ For sale ads, these should normally parse as thousands of USD unless context cle
 - `400 الف` -> `400000`
 
 Example bug fixed on 2026-09-01:
-
-Raw text:
 
 ```text
 🌷شقه للبيع الميسات عند دوار الميسات
@@ -72,7 +101,27 @@ Correct parse:
 - size_m2: `80`
 - price_per_m2: `1250`
 
-Rule: if a sale ad has no `price_usd`, or a suspiciously tiny sale price under `$5,000`, scan `raw_text` for `عدد + الف/ألف/الاف` and multiply by 1,000. Do not treat `مطلوب 400 دولار` in a rental ad as buyer demand; it may mean asking rent.
+Rule: if a sale ad has no `price_usd`, or a suspiciously tiny sale price under `$5,000`, scan `raw_text` for `عدد + الف/ألف/الاف` and multiply by 1,000.
+
+### Rent price versus wanted-buy language
+
+Do not misclassify rent ads because of the word `مطلوب`.
+
+Example:
+
+```text
+للإيجار محل
+... 
+مطلوب 400 دولار
+```
+
+This means asking rent, not `مطلوب شراء`.
+
+Priority rule:
+
+1. If the ad begins with or clearly contains `للإيجار`, `للاجار`, `للايجار`, `ايجار`, classify as `إيجار`.
+2. Only classify as `مطلوب شراء` if the phrase explicitly says `مطلوب شراء` or clearly asks to buy.
+3. `مطلوب 400 دولار` by itself is an asking price.
 
 ### Area/neighborhood inference
 
@@ -85,7 +134,31 @@ If `area` or `area_group` is missing, scan `raw_text` for known neighborhood nam
 - `أبو رمانة` / `ابو رمانة` -> `أبو رمانة`
 - `مزة` / `المزة` -> `المزة`
 
-Keep raw text visible because inferred neighborhoods need human verification.
+Keep raw text visible because inferred neighborhoods may need human verification.
+
+### Size extraction
+
+Recognize size patterns such as:
+
+- `80م`
+- `80 م`
+- `80 متر`
+- `مساحة 300 متر`
+- `المساحة 105م`
+
+Do not confuse price thousands with square meters. Prefer size values near `مساحة`, `متر`, `م2`, or `م`.
+
+### Derived fields
+
+After parsing, always compute or update:
+
+- `price_usd`
+- `currency_norm`
+- `price_per_m2` for sale ads where price and size are known
+- `dedupe_key`
+- `score`
+- `has_photos`
+- normalized `area_group`, `category_group`, `transaction_group`
 
 ## Data model notes
 
@@ -104,18 +177,26 @@ Common fields on each ad include:
 - `raw_text`
 - `dedupe_key`
 
-The app supports Arabic text and Arabic-Indic digits. Keep Arabic normalization behavior working when modifying search.
+The app supports Arabic text and Arabic-Indic digits. Keep Arabic normalization behavior working when modifying search or parsing.
 
 ## Build and test commands
 
-Run these from the repo root when using the generated-dashboard flow:
+For durable ingestion from a pasted file:
+
+```bash
+python3 append_ads.py pasted_ads.txt
+```
+
+This appends parsed ads to `real_estate_ads.json` and runs `build.py` unless `--no-build` is passed.
+
+Generated-dashboard flow:
 
 ```bash
 python3 build.py
 node smoke_test.js
 ```
 
-For the current `index.html` dashboard, add a direct browser or Node/jsdom style test when possible. The page currently includes a browser-console self-test that logs loaded ad count, repair counts, favorite count, and map-marker count.
+For the current `index.html` dashboard, add a direct browser or Node/jsdom style test when possible. The page includes browser-console self-tests for loaded ad count, repair counts, favorite count, and map-marker count.
 
 ## Product direction
 
@@ -164,7 +245,9 @@ When modifying this repo:
 1. Inspect the current file before editing.
 2. Make focused, reviewable changes.
 3. Do not overwrite large generated files from stale local copies.
-4. Prefer correction/append layers when full regeneration is risky.
-5. Run available tests or add browser-console self-tests for static UI logic.
-6. Summarize changed files and testing results.
-7. Call out any assumptions or known limitations.
+4. For new pasted WhatsApp ads, parse with `append_ads.py` rules and append structured records.
+5. Prefer direct fixes to the durable parser over one-off corrections.
+6. Use `data_corrections.json` only as a safety layer for already-published bad records.
+7. Run available tests or add browser-console self-tests for static UI logic.
+8. Summarize changed files and testing results.
+9. Call out any assumptions or known limitations.
