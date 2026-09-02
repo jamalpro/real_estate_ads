@@ -5,7 +5,7 @@
       "/mnt/data/Pasted text.txt",
       "Pasted text(1).txt (file_search turn12file0)"
     ],
-    "record_count": 209,
+    "record_count": 210,
     "note": "Parsed automatically from WhatsApp dumps. Some earlier ads are curated seed records from prior discussion where full raw files were not mounted. Manual ChatGPT records have been merged into this single database; manual_ads.json is retired.",
     "last_updated": "2026-09-02",
     "last_append": {
@@ -15,9 +15,9 @@
       "updated_at": "2026-09-01T13:47:00-07:00"
     },
     "manual_ads_merged": {
-      "merged_at": "2026-09-02T00:23:26+00:00",
+      "merged_at": "2026-09-02T00:52:19+00:00",
       "source_file": "manual_ads.json",
-      "added_records": 3,
+      "added_records": 1,
       "skipped_duplicates": 0
     }
   },
@@ -5670,6 +5670,44 @@
       ],
       "dedupe_key": "2e5ce0ea9b77",
       "raw_text": "للبيع \nمنطقة العدوي الفيلااات \nطابق تاني ⭕\nمساحة 200م²\nالاكساء قديم  ⭕\n3 غرف نوم وغرفة سفرة⭕ وجلوس وضيوف و3 حمامات تجاه قبلي شمالي ⭕\nاطلالة ع حديقة ⭕\nيوجد حصة بسطح وحصة بلقبو \nطابو اخضر 2400\n\nسعر 350 الف$ وبازار"
+    },
+    {
+      "id": "9d61b37e0c",
+      "source": "ChatGPT LLM parsed add 2026-09-01",
+      "stamp_raw": "9/1/26, 5:51 PM",
+      "date_iso": "2026-09-01T17:51:00-07:00",
+      "date": "2026-09-01",
+      "transaction": "بيع",
+      "transaction_group": "بيع",
+      "category": "شقة/سكني تجاري",
+      "category_group": "تجاري/مكتب",
+      "area": "ركن الدين",
+      "area_group": "ركن الدين",
+      "price": 400000,
+      "currency": "$",
+      "currency_norm": "USD",
+      "price_usd": 400000.0,
+      "price_text": "سعر 400الف $ وبازار",
+      "size_m2": 220.0,
+      "land_dunum": null,
+      "floor": "طابق أول",
+      "price_per_m2": 1818.18,
+      "score": 8,
+      "has_photos": false,
+      "tags": [
+        "شرقي ركن الدين",
+        "إطلالة مفتوحة",
+        "على الأوتستراد",
+        "سوكة كاملة",
+        "طابو أخضر",
+        "سطح",
+        "قبو",
+        "يصلح عيادات",
+        "يصلح شركة",
+        "مكتب هندسة"
+      ],
+      "dedupe_key": "f8e44d0b61a9",
+      "raw_text": "للبيع⭕\n شقة منطقة شرقي ركن الدين طلالة على الاتوستراد مباشرة ⭕\nاطلاله مفتوحة ⭕\nاخد سوكة كاملة ⭕\nطابق  اول ⭕\n مساحة 220م كامل \nالاكساء نظيف\n5 غرف وصالون⭕\nطابو اخضر 2400⭕\nاتجاه شرقي قبلي شمالي \nيوجد حصة بسطح وحصة بلقبو ⭕\n\n  موقع استراتيجي هام جدا\nملاحظة العقار ⭕\n يصلح مجمع عيادات او مكتب هندسه أو مركز شركة⭕\nسعر  400الف $وبازار⭕"
     }
   ]
 }
