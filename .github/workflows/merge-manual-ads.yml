@@ -1,0 +1,32 @@
+name: Merge manual ads into main database
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Merge manual ads
+        run: python3 merge_manual_ads.py
+      - name: Commit merged database
+        run: |
+          if git diff --quiet; then
+            echo "No merge changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add real_estate_ads.json manual_ads.json
+          git commit -m "Merge manual ads into main database"
+          git push
