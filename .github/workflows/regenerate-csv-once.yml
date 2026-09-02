@@ -1,0 +1,62 @@
+name: Regenerate CSV once
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Regenerate CSV from JSON only
+        run: |
+          python3 - <<'PY'
+          import csv, json
+          from pathlib import Path
+          db = json.loads(Path('real_estate_ads.json').read_text(encoding='utf-8'))
+          ads = db.get('ads', [])
+          cols = [
+              'id','date','source','transaction','transaction_group','category','category_group',
+              'area','area_group','price_usd','price_text','size_m2','land_dunum','floor',
+              'price_per_m2','score','has_photos','tags','parse_confidence','needs_review','raw_text'
+          ]
+          def val(ad, col):
+              if col == 'date':
+                  return ad.get('date') or ad.get('date_iso') or ''
+              if col == 'tags':
+                  tags = ad.get('tags') or []
+                  if isinstance(tags, list):
+                      return '; '.join(str(x) for x in tags)
+                  return str(tags)
+              v = ad.get(col, '')
+              if v is None:
+                  return ''
+              return v
+          with Path('real_estate_ads.csv').open('w', encoding='utf-8-sig', newline='') as f:
+              writer = csv.DictWriter(f, fieldnames=cols)
+              writer.writeheader()
+              for ad in ads:
+                  writer.writerow({c: val(ad, c) for c in cols})
+          print(f'Regenerated real_estate_ads.csv with {len(ads)} records')
+          PY
+      - name: Remove one-time workflow and commit CSV
+        run: |
+          rm .github/workflows/regenerate-csv-once.yml
+          if git diff --quiet; then
+            echo "No CSV changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add real_estate_ads.csv .github/workflows/regenerate-csv-once.yml
+          git commit -m "Regenerate CSV from current JSON"
+          git push
