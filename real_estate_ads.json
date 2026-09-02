@@ -5,15 +5,23 @@
     "record_count": 256,
     "source_files": [
       "/mnt/data/Pasted text.txt",
-      "/mnt/data/Pasted text(1).txt",
-      "existing real_estate_ads.json raw_text",
-      "manual chat pasted ads",
-      "WhatsApp video frame evidence (needs review records marked)"
+      "Pasted text(1).txt (file_search turn12file0)"
     ],
-    "rebuild_method": "ChatGPT LLM-directed rebuild using learned Syrian WhatsApp real-estate parsing rules; scripts used only for formatting/arithmetic/storage.",
-    "dedupe_method": "Semantic LLM-rule dedupe by area, size, price, transaction/category, and raw wording; not by old ids.",
-    "duplicates_skipped": 198,
-    "notes": "Production JSON was intentionally replaced per user approval because Git history is the rollback. Video-derived records are marked needs_review unless manually confirmed from frames."
+    "record_count": 222,
+    "note": "Parsed automatically from WhatsApp dumps. Some earlier ads are curated seed records from prior discussion where full raw files were not mounted. Manual ChatGPT records have been merged into this single database; manual_ads.json is retired.",
+    "last_updated": "2026-09-02",
+    "last_append": {
+      "input_records": 57,
+      "added_records": 41,
+      "skipped_duplicates": 16,
+      "updated_at": "2026-09-01T13:47:00-07:00"
+    },
+    "manual_ads_merged": {
+      "merged_at": "2026-09-02T01:31:09+00:00",
+      "source_file": "manual_ads.json",
+      "added_records": 11,
+      "skipped_duplicates": 0
+    }
   },
   "ads": [
     {
@@ -8244,10 +8252,10 @@
       "score": 8,
       "has_photos": false,
       "tags": [],
-      "dedupe_key": "d9af94cf6954",
-      "raw_text": "[OCR from WhatsApp video; frame frame_0180]\nللبيع 0\nمنزل ركن الدين شرقي شارع الهجرة و الجوازات\n0\nالاتجاه شرقي قبلي O\nمشمس ©\nطابق تاني O\nمساحة 130م2\nكسوة عادية O\nغرف وصالون O\n| سعر 205 الف $ وبازار O\nTRAM",
-      "parse_confidence": "medium-low",
-      "needs_review": true
+      "dedupe_key": "79f56a580ea9",
+      "ocr_confidence": "medium",
+      "needs_review": true,
+      "raw_text": "[OCR from WhatsApp video; frame frame_0180]\nللبيع\nمنزل ركن الدين شرقي شارع الهجرة و الجوازات\nالاتجاه شرقي قبلي\nمشمس\nطابق تاني\nمساحة 130م2\nكسوة عادية\nغرف وصالون\nسعر 205 الف $ وبازار"
     }
   ]
 }
