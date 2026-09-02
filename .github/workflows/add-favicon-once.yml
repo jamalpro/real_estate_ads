@@ -1,0 +1,68 @@
+name: Add favicon once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/add-favicon-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  add-favicon:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add favicon and wire HTML
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          favicon = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Syrian real estate dashboard">
+            <defs>
+              <linearGradient id="g" x1="10" y1="6" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#7c3f19"/>
+                <stop offset="0.55" stop-color="#b0692d"/>
+                <stop offset="1" stop-color="#d8a24b"/>
+              </linearGradient>
+              <filter id="s" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#4a260f" flood-opacity="0.28"/>
+              </filter>
+            </defs>
+            <rect width="64" height="64" rx="17" fill="url(#g)"/>
+            <path d="M13 33.5 32 17l19 16.5" fill="none" stroke="#fff8ef" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round" filter="url(#s)"/>
+            <path d="M19.5 32.5v17.5a3 3 0 0 0 3 3h19a3 3 0 0 0 3-3V32.5" fill="none" stroke="#fff8ef" stroke-width="4.7" stroke-linejoin="round"/>
+            <path d="M28 53V41.5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2V53" fill="none" stroke="#fff8ef" stroke-width="4.5" stroke-linecap="round"/>
+            <circle cx="47" cy="18" r="5" fill="#fff8ef" opacity="0.95"/>
+            <path d="M45.4 18.2h3.2" stroke="#8a481e" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          '''
+          Path('favicon.svg').write_text(favicon + '\n', encoding='utf-8')
+
+          links = '''<link rel="icon" href="favicon.svg" type="image/svg+xml">
+          <link rel="alternate icon" href="favicon.svg">
+          <meta name="theme-color" content="#7c3f19">'''
+
+          for name in ['index.html', 'real_estate_ads.html', 'page.template.html']:
+              path = Path(name)
+              if not path.exists():
+                  continue
+              text = path.read_text(encoding='utf-8')
+              if 'rel="icon" href="favicon.svg"' in text:
+                  continue
+              marker = '<meta name="viewport" content="width=device-width,initial-scale=1">'
+              if marker in text:
+                  text = text.replace(marker, marker + '\n' + links, 1)
+              else:
+                  text = text.replace('<head>', '<head>\n' + links, 1)
+              path.write_text(text, encoding='utf-8')
+          PY
+      - name: Commit changes and remove workflow
+        run: |
+          rm .github/workflows/add-favicon-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add favicon.svg index.html real_estate_ads.html page.template.html .github/workflows/add-favicon-once.yml
+          git commit -m "Add dashboard favicon"
+          git push
