@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Regenerate real_estate_ads.csv and dashboard HTML files from real_estate_ads.json.
+"""Regenerate dashboard HTML files from real_estate_ads.json.
 
-real_estate_ads.json is the source of truth. This script recomputes the derived
-fields on each ad, validates the dataset, and writes the spreadsheet export plus
-both dashboard entry points:
+real_estate_ads.json is the single source of truth. This script recomputes
+derived fields, validates the dataset, and writes both dashboard entry points:
 
 - real_estate_ads.html for the explicit dashboard URL
 - index.html for the GitHub Pages project root URL
@@ -11,7 +10,6 @@ both dashboard entry points:
 Run it after any change to the JSON or to page.template.html.
 """
 
-import csv
 import json
 import re
 import sys
@@ -20,7 +18,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 JSON_PATH = ROOT / "real_estate_ads.json"
-CSV_PATH = ROOT / "real_estate_ads.csv"
 HTML_PATH = ROOT / "real_estate_ads.html"
 INDEX_PATH = ROOT / "index.html"
 TEMPLATE_PATH = ROOT / "page.template.html"
@@ -49,14 +46,6 @@ WANTED_RE = re.compile(r"للشرا|مطلوب\s*شرا")
 RENT_RE = re.compile(r"ايجار|اجار|بالشهر|شهري")
 SALE_RE = re.compile(r"بيع")
 AMBIGUOUS_TRANSACTIONS = {"", "غير محدد", "مطلوب", "مطلوب شراء"}
-
-CSV_COLUMNS = [
-    "id", "date", "stamp_raw", "transaction", "transaction_group",
-    "category", "category_group", "area", "area_group",
-    "price", "currency", "currency_norm", "price_usd", "price_text",
-    "size_m2", "land_dunum", "floor", "price_per_m2", "score",
-    "has_photos", "tags", "raw_text",
-]
 
 AR_MARKS = re.compile(r"[ؐ-ًؚ-ٰٟـ]")
 AR_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹", "01234567890123456789")
@@ -178,16 +167,6 @@ def write_json(db):
     JSON_PATH.write_text(json.dumps(db, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
-def write_csv(ads):
-    with CSV_PATH.open("w", encoding="utf-8-sig", newline="") as fh:
-        writer = csv.DictWriter(fh, fieldnames=CSV_COLUMNS, extrasaction="ignore")
-        writer.writeheader()
-        for ad in ads:
-            row = {k: ad.get(k) for k in CSV_COLUMNS}
-            row["tags"] = ", ".join(ad.get("tags") or [])
-            writer.writerow({k: "" if v is None else v for k, v in row.items()})
-
-
 def write_html(db):
     template = TEMPLATE_PATH.read_text(encoding="utf-8")
     if "{{ADS_JSON}}" not in template:
@@ -205,10 +184,9 @@ def main():
     merges, relabelled, flagged = derive(ads)
     validate(db)
     write_json(db)
-    write_csv(ads)
     write_html(db)
 
-    print(f"{len(ads)} ads -> {CSV_PATH.name}, {HTML_PATH.name}, {INDEX_PATH.name}")
+    print(f"{len(ads)} ads -> {HTML_PATH.name}, {INDEX_PATH.name}")
     print(f"  areas: {len({a['area_group'] for a in ads if a['area_group']})} groups"
           f" from {len({a['area'] for a in ads if a['area']})} raw labels")
     for label, variants in sorted(merges):

@@ -1,6 +1,6 @@
 // Smoke test for the generated page: node smoke_test.js
 // Loads real_estate_ads.html, runs its script against a minimal DOM, and checks
-// that listings actually render and the filters/sorts/export behave.
+// that listings actually render and the filters/sorts behave.
 'use strict';
 
 const fs = require('fs');
@@ -39,19 +39,16 @@ const $ = (id) => {
   return els.get(id);
 };
 
-let downloaded = null;
 const sandbox = {
   Intl, Map, Set, Array, Object, String, Number, Math, JSON, console,
   setTimeout, clearTimeout,
   document: {
     getElementById: $,
     documentElement: { style: { setProperty() {} } },
-    createElement: () => ({ click() { downloaded = this.href; }, set href(v) { this._h = v; }, get href() { return this._h; } })
+    createElement: () => ({})
   },
   window: { addEventListener() {} },
-  Option: function (text, value) { return { text, value }; },
-  Blob: function (parts) { this.text = parts.join(''); sandbox.__lastBlob = this; },
-  URL: { createObjectURL: () => 'blob:test', revokeObjectURL() {} }
+  Option: function (text, value) { return { text, value }; }
 };
 sandbox.window.document = sandbox.document;
 

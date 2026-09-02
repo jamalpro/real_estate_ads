@@ -80,7 +80,6 @@ th{position:sticky;top:calc(var(--header-h) - 1px);background:var(--card);z-inde
   <div class="buttons">
     <button class="btn" id="btnReset" type="button">مسح الفلاتر</button>
     <button class="btn" id="btnView" type="button">عرض كجدول</button>
-    <button class="btn primary" id="btnCsv" type="button">تصدير النتائج CSV</button>
   </div>
 </header>
 
@@ -295,25 +294,6 @@ th{position:sticky;top:calc(var(--header-h) - 1px);background:var(--card);z-inde
     }
   }
 
-  function downloadCSV() {
-    var cols = ['id', 'date', 'area', 'category', 'transaction', 'price', 'currency_norm',
-                'price_usd', 'size_m2', 'land_dunum', 'floor', 'price_per_m2', 'score', 'tags', 'raw_text'];
-    var rows = [cols].concat(results.map(function (a) {
-      return cols.map(function (c) {
-        return c === 'tags' ? (a.tags || []).join(' | ') : a[c];
-      });
-    }));
-    var csv = rows.map(function (r) {
-      return r.map(function (v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }).join(',');
-    }).join('\r\n');
-    var url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
-    var link = document.createElement('a');
-    link.href = url;
-    link.download = 'filtered_real_estate_ads.csv';
-    link.click();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-  }
-
   function resetFilters() {
     ['q', 'maxPrice', 'trx', 'cat', 'area'].forEach(function (id) { $(id).value = ''; });
     $('sort').value = 'date_desc';
@@ -348,7 +328,6 @@ th{position:sticky;top:calc(var(--header-h) - 1px);background:var(--card);z-inde
       $(id).addEventListener('change', render);
     });
     $('btnReset').addEventListener('click', resetFilters);
-    $('btnCsv').addEventListener('click', downloadCSV);
     $('btnView').addEventListener('click', function () {
       tableMode = !tableMode;
       this.textContent = tableMode ? 'عرض كبطاقات' : 'عرض كجدول';
