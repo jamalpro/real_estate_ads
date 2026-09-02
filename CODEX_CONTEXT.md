@@ -10,12 +10,16 @@ The project should remain simple, portable, and static. It should work when host
 
 ## Actual current workflow
 
-The current operating workflow is **ChatGPT-assisted ingestion**:
+The current operating workflow is **ChatGPT/LLM-assisted ingestion**.
+
+The LLM in the ChatGPT conversation is the parser of record for new pasted WhatsApp ads. Repository scripts may validate, normalize, dedupe, or rebuild files, but they must not be treated as the primary source of interpretation when the user pastes raw ads into chat.
+
+Workflow:
 
 1. The user copies one ad or multiple ads from WhatsApp.
 2. The user pastes the raw ad text into this ChatGPT conversation.
-3. ChatGPT parses every ad into structured JSON records.
-4. ChatGPT appends those records to the repo data, extracting key facts:
+3. ChatGPT LLM reads the raw Arabic text and parses every ad into structured JSON records.
+4. ChatGPT LLM extracts and verifies key facts from the ad text:
    - area / neighborhood
    - price
    - currency
@@ -26,10 +30,18 @@ The current operating workflow is **ChatGPT-assisted ingestion**:
    - photos/video indicator
    - tags such as `طابو أخضر`, `سطح`, `حديقة`, `مدخل مستقل`, `تجاري`
    - derived fields such as `price_usd`, `price_per_m2`, `score`, `dedupe_key`
-5. ChatGPT pushes the updated JSON/page files to GitHub.
-6. GitHub Pages serves the updated static dashboard.
+5. ChatGPT appends the LLM-parsed structured records to the repo data.
+6. ChatGPT pushes the updated JSON/page files to GitHub.
+7. GitHub Pages serves the updated static dashboard.
 
-This means the parser must be durable and reusable across past and future ads. Do not treat parser fixes as one-off UI corrections only.
+Important: do not tell the user that parsing must happen by a deterministic script first. The intended workflow is that ChatGPT does the semantic parsing here in chat, then writes the structured result to the repository.
+
+## Role of scripts
+
+- `append_ads.py` is a helper/reference validator for parser rules, not the authority over pasted ad interpretation.
+- It may be used to normalize fields, compute derived values, or check consistency after the LLM creates structured records.
+- If `append_ads.py` disagrees with the LLM on a semantic point, inspect the raw text and resolve it in ChatGPT before writing final JSON.
+- Parser lessons should still be encoded in `append_ads.py` as guardrails so future validation catches obvious misses.
 
 ## Current repository structure
 
@@ -40,19 +52,18 @@ This means the parser must be durable and reusable across past and future ads. D
   - Do not overwrite this large file from a stale local copy.
 
 - `append_ads.py`
-  - Durable WhatsApp-ad parser and append workflow.
-  - Implements the parsing contract ChatGPT should follow when the user pastes raw WhatsApp ads.
-  - It parses Arabic WhatsApp text, dedupes, appends to `real_estate_ads.json`, and can run `build.py`.
-  - Keep this script aligned with the ChatGPT workflow.
+  - Helper/reference parser and validation workflow.
+  - Mirrors the parsing contract ChatGPT should follow when the user pastes raw WhatsApp ads.
+  - It should not replace ChatGPT LLM semantic parsing for pasted ads.
 
 - `manual_ads.json`
-  - Temporary/small append layer for manually added records when editing the main JSON is risky.
-  - Prefer direct append to `real_estate_ads.json` once the parser workflow is stable.
+  - Temporary/small append layer for manually added ChatGPT-parsed records when editing the main JSON is risky.
+  - Prefer direct append to `real_estate_ads.json` once the workflow is stable.
 
 - `data_corrections.json`
   - Correction layer for known parser misses.
   - Use this to patch already-generated records when rewriting the main database is risky.
-  - Long-term, fold corrections back into the parser and regenerated database.
+  - Long-term, fold corrections back into the parser rules and regenerated database.
 
 - `index.html`
   - Current GitHub Pages entrypoint and polished static dashboard.
@@ -67,6 +78,8 @@ This means the parser must be durable and reusable across past and future ads. D
   - Node-based smoke test for the older generated HTML. Add/update tests for `index.html` when possible.
 
 ## Permanent parser rules
+
+These rules are for ChatGPT LLM parsing first, and script validation second.
 
 ### Arabic thousand prices
 
@@ -181,13 +194,7 @@ The app supports Arabic text and Arabic-Indic digits. Keep Arabic normalization 
 
 ## Build and test commands
 
-For durable ingestion from a pasted file:
-
-```bash
-python3 append_ads.py pasted_ads.txt
-```
-
-This appends parsed ads to `real_estate_ads.json` and runs `build.py` unless `--no-build` is passed.
+For the current ChatGPT workflow, first parse in chat, then write JSON. Scripts are optional checks.
 
 Generated-dashboard flow:
 
@@ -245,9 +252,10 @@ When modifying this repo:
 1. Inspect the current file before editing.
 2. Make focused, reviewable changes.
 3. Do not overwrite large generated files from stale local copies.
-4. For new pasted WhatsApp ads, parse with `append_ads.py` rules and append structured records.
-5. Prefer direct fixes to the durable parser over one-off corrections.
-6. Use `data_corrections.json` only as a safety layer for already-published bad records.
-7. Run available tests or add browser-console self-tests for static UI logic.
-8. Summarize changed files and testing results.
-9. Call out any assumptions or known limitations.
+4. For new pasted WhatsApp ads, ChatGPT LLM parses the raw text here in chat first.
+5. Scripts may validate or normalize the LLM-parsed structured record, but should not override the semantic parse without checking the raw text.
+6. Prefer direct fixes to durable parser rules over one-off corrections.
+7. Use `data_corrections.json` only as a safety layer for already-published bad records.
+8. Run available tests or add browser-console self-tests for static UI logic.
+9. Summarize changed files and testing results.
+10. Call out any assumptions or known limitations.
