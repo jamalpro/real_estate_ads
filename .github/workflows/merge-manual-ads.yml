@@ -17,14 +17,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - name: Stage second OCR batch if present
-        run: |
-          if [ -f stage_ocr_second_batch.py ]; then
-            python3 stage_ocr_second_batch.py
-          else
-            echo "No OCR staging script present."
-          fi
-      - name: Merge manual ads
+      - name: Merge LLM-approved manual ads
         run: python3 merge_manual_ads.py
       - name: Commit merged database
         run: |
