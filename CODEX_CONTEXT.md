@@ -11,37 +11,81 @@ The project should remain simple, portable, and static. It should work from a lo
 ## Current repository structure
 
 - `real_estate_ads.json`
-  - Source of truth for all ad records.
+  - Generated/source database for the main ad records.
   - Contains `metadata` and an `ads` array.
-  - Do not manually edit generated fields unless necessary; prefer changing source values and running `build.py`.
+  - Do not casually overwrite this large file from an old local copy.
 
-- `build.py`
-  - Regenerates derived fields, validates records, writes `real_estate_ads.csv`, and generates `real_estate_ads.html` from `page.template.html`.
-  - Run this after editing `real_estate_ads.json` or `page.template.html`.
-  - Important: `real_estate_ads.html` is generated output. Do not hand-edit it.
+- `manual_ads.json`
+  - Small append-only layer for ads added manually from the ChatGPT conversation.
+  - The live `index.html` merges this with `real_estate_ads.json` at load time.
 
-- `page.template.html`
-  - Main UI template and client-side JavaScript.
-  - This is the correct file to edit when improving the UI.
-  - The template contains `{{ADS_JSON}}`; `build.py` replaces that placeholder with the full JSON payload.
+- `data_corrections.json`
+  - Small correction layer for known parser misses.
+  - Use this when one or a few generated records need fixes but regenerating the full database is risky.
+  - Corrections are keyed by `id` or `dedupe_key` and applied by `index.html` after loading data.
 
-- `real_estate_ads.html`
-  - Generated standalone dashboard.
-  - Can be opened directly in a browser.
-  - Can be served by GitHub Pages.
+- `index.html`
+  - Current GitHub Pages entrypoint and polished static dashboard.
+  - Loads `real_estate_ads.json`, `manual_ads.json`, and `data_corrections.json`.
+  - Applies client-side repairs for missing price, area, and size from `raw_text`.
+  - Supports favorites using localStorage with a cookie fallback.
 
-- `real_estate_ads.csv`
-  - Spreadsheet-friendly export generated from the JSON.
+- `build.py`, `page.template.html`, `real_estate_ads.html`, `real_estate_ads.csv`
+  - Earlier generated-dashboard workflow. Keep it available, but be careful not to regress the newer `index.html` entrypoint.
 
 - `smoke_test.js`
-  - Node-based smoke test for the generated HTML.
-  - It checks that the dashboard renders, search works, Arabic normalization works, digit search works, price filter works, table mode works, and CSV export works.
+  - Node-based smoke test for the generated HTML. If the main dashboard remains `index.html`, add/update tests for `index.html` too.
 
-- `append_ads.py`
-  - Placeholder workflow helper. Current data appends are still handled outside this repo or by future parser work.
+## Critical parser lessons
 
-- `README.md`
-  - Basic project description, publishing instructions, and update workflow.
+### Arabic thousand prices
+
+Do not miss prices written as Arabic prose, especially:
+
+- `100 الف`
+- `100 ألف`
+- `400 الف منهي`
+- `المطلوب 250 الف`
+
+For sale ads, these should normally parse as thousands of USD unless context clearly says otherwise:
+
+- `100 الف` -> `100000`
+- `400 الف` -> `400000`
+
+Example bug fixed on 2026-09-01:
+
+Raw text:
+
+```text
+🌷شقه للبيع الميسات عند دوار الميسات
+نزول شاحطين مشمس ومهوي 80م غرفتين وصالون وجنينه اكساء سوبر ديلوكس لسا ما انسكن البيت 
+الملكية حكم محكمه قابل يصيرطابو
+100 الف وبازار.🌷.
+```
+
+Correct parse:
+
+- transaction: `بيع`
+- area: `الميسات`
+- price: `100000`
+- currency_norm: `USD`
+- size_m2: `80`
+- price_per_m2: `1250`
+
+Rule: if a sale ad has no `price_usd`, or a suspiciously tiny sale price under `$5,000`, scan `raw_text` for `عدد + الف/ألف/الاف` and multiply by 1,000. Do not treat `مطلوب 400 دولار` in a rental ad as buyer demand; it may mean asking rent.
+
+### Area/neighborhood inference
+
+If `area` or `area_group` is missing, scan `raw_text` for known neighborhood names and variants. Examples:
+
+- `الميسات عند دوار الميسات` -> `الميسات`
+- `قبل جامع ابو النور` -> usually `الميسات`
+- `شعلان` -> `الشعلان`
+- `جسر الأبيض` / `الجسر الأبيض` -> `الجسر الأبيض`
+- `أبو رمانة` / `ابو رمانة` -> `أبو رمانة`
+- `مزة` / `المزة` -> `المزة`
+
+Keep raw text visible because inferred neighborhoods need human verification.
 
 ## Data model notes
 
@@ -64,19 +108,14 @@ The app supports Arabic text and Arabic-Indic digits. Keep Arabic normalization 
 
 ## Build and test commands
 
-Run these from the repo root:
+Run these from the repo root when using the generated-dashboard flow:
 
 ```bash
 python3 build.py
 node smoke_test.js
 ```
 
-Expected result:
-
-- `build.py` rewrites `real_estate_ads.json`, `real_estate_ads.csv`, and `real_estate_ads.html`.
-- `smoke_test.js` should print an all-checks-passed message.
-
-Before committing UI changes, run both commands.
+For the current `index.html` dashboard, add a direct browser or Node/jsdom style test when possible. The page currently includes a browser-console self-test that logs loaded ad count, repair counts, favorite count, and map-marker count.
 
 ## Product direction
 
@@ -91,90 +130,10 @@ Target experience:
 - Useful summary stats.
 - Clear empty states.
 - Easy table mode for power users.
-- Easy export of filtered results.
+- Local favorites stored on device only.
+- A simple neighborhood map/marker panel that helps browse by area.
 
 Arabic/RTL should remain first-class. Keep the document `lang="ar" dir="rtl"` unless there is a deliberate reason to change it.
-
-## First task: improve the UI design
-
-Improve `page.template.html` so the generated `real_estate_ads.html` looks like a modern, user-friendly real estate listings page.
-
-### Goals
-
-1. Make the dashboard visually polished and easier to scan.
-2. Preserve all existing functionality:
-   - search
-   - filters
-   - sorting
-   - card/table toggle
-   - CSV export
-   - Arabic normalization
-   - Arabic-Indic digit matching
-   - dark-mode support if possible
-3. Keep it static and dependency-free unless there is a strong reason not to.
-4. Maintain GitHub Pages/local-file compatibility.
-5. Keep `smoke_test.js` passing, updating tests only when UI markup changes make that necessary.
-
-### Suggested UI improvements
-
-- Add a richer hero/header area with:
-  - page title
-  - short subtitle explaining the dashboard
-  - last updated date
-  - total ad count
-  - quick action buttons
-
-- Improve filter layout:
-  - make search more prominent
-  - group filters into a clean panel
-  - add clear labels, not only placeholders
-  - make mobile layout cleaner
-
-- Improve stats:
-  - use visually distinct stat cards
-  - show total filtered results, sale count, rent count, median price per m²
-  - optionally add commercial/residential counts if available
-
-- Improve listing cards:
-  - stronger title hierarchy
-  - clearer price block
-  - show area/category/transaction as chips
-  - show key facts in a compact grid
-  - show score as a badge or meter
-  - show tags cleanly
-  - collapse or visually separate raw WhatsApp text
-
-- Improve interaction affordances:
-  - sticky filter bar should not consume too much vertical space on mobile
-  - buttons should have clear states
-  - table/card toggle should be obvious
-  - empty state should tell the user how to recover
-
-- Improve visual style:
-  - use a warmer real-estate-style palette
-  - add better spacing and shadows
-  - improve typography and line-height for Arabic text
-  - use responsive cards with comfortable min/max widths
-
-### Constraints
-
-- Do not hand-edit `real_estate_ads.html`; it is generated.
-- Edit `page.template.html` and then run `python3 build.py`.
-- Keep the data island script: `<script id="ads-data" type="application/json">{{ADS_JSON}}</script>`.
-- Avoid external CDNs so the page remains portable and works offline.
-- Do not remove raw ad text; it is important for verification.
-- Do not remove table mode or CSV export.
-- Preserve accessibility basics: labels, readable contrast, keyboard-friendly controls.
-
-## Future likely tasks
-
-- Build a real parser for appending WhatsApp dumps directly from text files.
-- Add saved presets for target areas and investment criteria.
-- Add stronger deduplication and record merge workflow.
-- Add edit/review flags for suspicious price parsing.
-- Add map/location enrichment when exact addresses become available.
-- Add analytics: price per m² by area, top opportunities, investment scoring explanation.
-- Add GitHub Actions to run `python3 build.py` and `node smoke_test.js` on pull requests.
 
 ## User/project preferences
 
@@ -204,7 +163,8 @@ When modifying this repo:
 
 1. Inspect the current file before editing.
 2. Make focused, reviewable changes.
-3. Prefer editing source files over generated files.
-4. Run build and smoke tests.
-5. Summarize changed files and testing results.
-6. Call out any assumptions or known limitations.
+3. Do not overwrite large generated files from stale local copies.
+4. Prefer correction/append layers when full regeneration is risky.
+5. Run available tests or add browser-console self-tests for static UI logic.
+6. Summarize changed files and testing results.
+7. Call out any assumptions or known limitations.
