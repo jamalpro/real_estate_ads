@@ -1,0 +1,59 @@
+name: Remove data corrections once
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  remove-data-corrections:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove data_corrections layer
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          files = ['page.template.html', 'index.html', 'real_estate_ads.html']
+          old = "Promise.all([loadJson('real_estate_ads.json',false),loadJson('manual_ads.json',true),loadJson('data_corrections.json',true)]).then(function(v){init(v[0],v[1],v[2])})"
+          new = "Promise.all([loadJson('real_estate_ads.json',false),loadJson('manual_ads.json',true)]).then(function(v){init(v[0],v[1],{})})"
+          for name in files:
+              p = Path(name)
+              if not p.exists():
+                  continue
+              s = p.read_text(encoding='utf-8')
+              if old in s:
+                  s = s.replace(old, new)
+              else:
+                  s = re.sub(
+                      r"Promise\.all\(\[loadJson\('real_estate_ads\.json',false\),loadJson\('manual_ads\.json',true\),loadJson\('data_corrections\.json',true\)\]\)\.then\(function\(v\)\{init\(v\[0\],v\[1\],v\[2\]\)\}\)",
+                      new,
+                      s,
+                  )
+              p.write_text(s, encoding='utf-8')
+
+          dc = Path('data_corrections.json')
+          if dc.exists():
+              dc.unlink()
+
+          tmp = Path('.github/workflows/remove-data-corrections-once.yml')
+          if tmp.exists():
+              tmp.unlink()
+          PY
+      - name: Commit cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No data corrections cleanup changes."
+            exit 0
+          fi
+          git commit -m "Remove data corrections layer"
+          git push
