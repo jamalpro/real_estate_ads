@@ -1,44 +1,70 @@
-# Real Estate Ads Dashboard
+# تقرير عقارات دمشق
 
-Standalone local dashboard and data files for Syrian real estate WhatsApp ads.
+صفحة ثابتة لتصفح وفلترة ومقارنة إعلانات عقارات دمشق، مبنية من قاعدة بيانات إعلانات منظمة.
 
-## Files
+الهدف من المشروع هو بناء مرجع واضح وسريع بدل فوضى رسائل واتساب وفيسبوك، مع إبقاء نص الإعلان الأصلي متاحاً للمراجعة.
 
-- `index.html` - GitHub Pages root entry point for the dashboard.
-- `real_estate_ads.html` - standalone searchable/filterable HTML dashboard. Open this directly in a browser.
-- `real_estate_ads.json` - source database used by the dashboard.
-- `page.template.html` - dashboard template. Edit this for UI changes, then run `python3 build.py`.
-- `build.py` - regenerates derived files from the JSON and template.
-- `smoke_test.js` - lightweight regression test for rendering, search, filters, sorting, table mode.
+## الرابط العام
 
-## Current data
+https://jamalpro.github.io/real_estate_ads/
 
-The current dataset is stored only in `real_estate_ads.json`.
+الرابط المباشر للملف المولد:
 
-## Publish to GitHub Pages
+https://jamalpro.github.io/real_estate_ads/real_estate_ads.html
 
-After pushing this repo to GitHub, enable GitHub Pages:
+## ما هذا المشروع؟
 
-1. Go to **Settings -> Pages**.
-2. Source: **Deploy from a branch**.
-3. Branch: `main` and folder `/root`.
-4. Save.
+- مرجع بحث ومقارنة لإعلانات عقارات دمشق.
+- ليس مكتباً عقارياً ولا وسيطاً.
+- لا يضمن صحة السعر أو الملكية أو توفر العقار.
+- يساعد على البحث والفلترة والمقارنة فقط.
+- يجب التحقق من الإعلان والملكية والموقع قبل أي قرار.
 
-The dashboard should then be available at:
+## الملفات المهمة
 
-`https://jamalpro.github.io/real_estate_ads/`
+- `index.html` - صفحة GitHub Pages الرئيسية.
+- `real_estate_ads.html` - نسخة HTML مستقلة قابلة للفتح مباشرة.
+- `real_estate_ads.json` - قاعدة البيانات الأساسية ومصدر الحقيقة.
+- `page.template.html` - قالب الصفحة. أي تعديل تصميمي يجب أن يبدأ منه.
+- `build.py` - يولد `index.html` و `real_estate_ads.html` من القالب والبيانات.
+- `smoke_test.js` - اختبار سريع للبحث والفلاتر والعرض.
+- `LAUNCH_NOTES.md` - ملاحظات الإطلاق والرسالة التسويقية.
+- `robots.txt` و `sitemap.xml` - ملفات دعم للفهرسة.
 
-The explicit generated file URL also works:
+## تحديث البيانات
 
-`https://jamalpro.github.io/real_estate_ads/real_estate_ads.html`
+عند إضافة إعلانات جديدة، استخدم `manual_ads.json` كملف مؤقت ثم دع workflow الدمج يعالجها، أو حدّث `real_estate_ads.json` بحذر إذا كان التعديل مباشراً.
 
-## Update workflow
-
-When new WhatsApp ads are added, update `real_estate_ads.json`, then run:
+بعد أي تعديل على البيانات أو القالب، يفترض تشغيل:
 
 ```bash
 python3 build.py
 node smoke_test.js
 ```
 
-Commit and push the changed `real_estate_ads.json`, `real_estate_ads.html`, and `index.html` files.
+ملاحظة: إذا فشل `build.py` بسبب بيانات قديمة مثل duplicate IDs، أصلح البيانات أولاً ولا تغيّر التصميم كحل جانبي.
+
+## قواعد الثقة العامة
+
+- لا ننشر إعلاناً متوقفاً إذا كان مذكوراً بوضوح أنه توقف أو تم بيعه/تأجيره.
+- نحافظ على نص الإعلان الأصلي قدر الإمكان.
+- نعلّم الحقول الملتبسة للمراجعة بدلاً من اختراع قيمة مؤكدة.
+- لا نحول أسعار الليرة إلى دولار من دون مصدر واضح.
+- لا ندّعي التحقق الميداني من العقار.
+
+## استقبال التصحيحات والإعلانات
+
+استخدم GitHub Issues:
+
+- **تصحيح إعلان**: لتصحيح سعر، منطقة، مساحة، ملكية، تكرار، أو إعلان متوقف.
+- **إضافة إعلان**: لإرسال نص إعلان جديد كما وصل.
+
+## النشر على GitHub Pages
+
+GitHub Pages يجب أن يكون مضبوطاً على:
+
+- Source: Deploy from a branch
+- Branch: `main`
+- Folder: `/root`
+
+بعد أي push إلى `main`، قد يحتاج الموقع دقيقة أو دقيقتين حتى يتحدث.
