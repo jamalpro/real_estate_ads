@@ -1,0 +1,41 @@
+name: إضافة إعلان
+description: اقترح إعلاناً عقارياً لإضافته إلى تقرير عقارات دمشق
+labels: ["ad-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        أرسل نص الإعلان كما هو قدر الإمكان. سيتم تنظيمه للبحث والفلترة مع إبقاء النص الأصلي للمراجعة.
+  - type: textarea
+    id: raw-ad
+    attributes:
+      label: نص الإعلان الأصلي
+      description: انسخ الإعلان كما وصلك، بما في ذلك التاريخ والسعر والمنطقة إن وجد.
+      placeholder: الصق نص الإعلان هنا...
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: المصدر
+      description: واتساب، فيسبوك، تليغرام، وسيط، إلخ.
+      placeholder: مثال: واتساب / مجموعة عقارات دمشق
+    validations:
+      required: false
+  - type: dropdown
+    id: status
+    attributes:
+      label: حالة الإعلان
+      options:
+        - غير معروف
+        - نشط
+        - متوقف / تم البيع / تم التأجير
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: ملاحظات إضافية
+      description: أي توضيح عن الصور، الفيديو، التواصل، أو الشكوك في السعر/الملكية.
+    validations:
+      required: false
