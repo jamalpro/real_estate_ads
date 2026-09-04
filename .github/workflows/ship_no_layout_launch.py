@@ -1,29 +1,44 @@
 from pathlib import Path
+import re
 
-OLD_TITLE = '<title>تقارير عقارات سوريا - قاعدة الإعلانات</title>'
-NEW_TITLE = '''<title>تقرير عقارات دمشق | قاعدة إعلانات قابلة للبحث</title>
-<meta name="description" content="تقرير عقارات دمشق: قاعدة إعلانات عقارية منظمة وقابلة للبحث لدمشق، تساعد على فلترة الإعلانات حسب المنطقة والسعر والمساحة ونوع العقار.">
-<meta property="og:title" content="تقرير عقارات دمشق">
+NEW_TITLE_TEXT = 'تقرير عقارات دمشق | قاعدة إعلانات قابلة للبحث'
+NEW_DESCRIPTION = 'تقرير عقارات دمشق: قاعدة إعلانات عقارية منظمة وقابلة للبحث لدمشق، تساعد على فلترة الإعلانات حسب المنطقة والسعر والمساحة ونوع العقار.'
+OG_BLOCK = '''<meta property="og:title" content="تقرير عقارات دمشق">
 <meta property="og:description" content="بحث وفلترة ومقارنة لإعلانات عقارات دمشق في صفحة خفيفة وسريعة.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ar_SY">
 <meta name="twitter:card" content="summary">
 <meta name="robots" content="index,follow">'''
-OLD_H1 = '<h1>تقارير عقارات سوريا - قاعدة الإعلانات</h1>'
-NEW_H1 = '<h1>تقرير عقارات دمشق</h1>'
+
+
+def patch_head(text):
+    text = re.sub(r'<title>.*?</title>', f'<title>{NEW_TITLE_TEXT}</title>', text, count=1, flags=re.S)
+    if re.search(r'<meta name="description" content="[^"]*">', text):
+        text = re.sub(r'<meta name="description" content="[^"]*">', f'<meta name="description" content="{NEW_DESCRIPTION}">', text, count=1)
+    else:
+        text = text.replace(f'<title>{NEW_TITLE_TEXT}</title>', f'<title>{NEW_TITLE_TEXT}</title>\n<meta name="description" content="{NEW_DESCRIPTION}">', 1)
+    if 'property="og:title"' not in text:
+        text = text.replace(f'<meta name="description" content="{NEW_DESCRIPTION}">', f'<meta name="description" content="{NEW_DESCRIPTION}">\n{OG_BLOCK}', 1)
+    return text
+
+
+def patch_brand_text(text):
+    text = text.replace('<h1>تقارير عقارات سوريا - قاعدة الإعلانات</h1>', '<h1>تقرير عقارات دمشق</h1>')
+    text = text.replace('<div class="kicker">تقارير عقارات سوريا</div>', '<div class="kicker">تقرير عقارات دمشق</div>')
+    return text
 
 for filename in ['page.template.html', 'index.html', 'real_estate_ads.html']:
     p = Path(filename)
     text = p.read_text(encoding='utf-8')
-    if OLD_TITLE not in text:
-        raise SystemExit(f'Expected original title not found in {filename}; refusing to patch layout unexpectedly')
-    if OLD_H1 not in text:
-        raise SystemExit(f'Expected original h1 not found in {filename}; refusing to patch layout unexpectedly')
-    text = text.replace(OLD_TITLE, NEW_TITLE, 1)
-    text = text.replace(OLD_H1, NEW_H1, 1)
-    for forbidden in ['class="hero"', 'trust-grid', 'aboutModal', 'publicTrustNote', 'مشاركة الصفحة', 'أرسل إعلان / تصحيح']:
+    before = text
+    text = patch_head(text)
+    text = patch_brand_text(text)
+    # Explicit guardrails: do not add new visible launch UI or extra controls.
+    for forbidden in ['publicTrustNote', 'عن المؤشر والمنهجية', 'مشاركة الصفحة', 'أرسل إعلان / تصحيح', 'trust-card']:
         if forbidden in text:
-            raise SystemExit(f'Forbidden layout/UI marker introduced in {filename}: {forbidden}')
+            raise SystemExit(f'Forbidden new launch UI marker found in {filename}: {forbidden}')
+    if text == before:
+        raise SystemExit(f'No changes made to {filename}')
     p.write_text(text, encoding='utf-8')
 
 Path('robots.txt').write_text(
@@ -69,4 +84,5 @@ smoke = Path('smoke_test.js')
 if smoke.exists():
     s = smoke.read_text(encoding='utf-8')
     s = s.replace('تقارير عقارات سوريا - قاعدة الإعلانات', 'تقرير عقارات دمشق')
+    s = s.replace('تقارير عقارات سوريا | Real Estate Ads', NEW_TITLE_TEXT)
     smoke.write_text(s, encoding='utf-8')
