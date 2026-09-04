@@ -1,0 +1,31 @@
+name: تصحيح إعلان
+description: أرسل تصحيحاً لإعلان موجود في تقرير عقارات دمشق
+labels: ["data-correction"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        شكراً لمساعدتك في تحسين البيانات. هذه الصفحة مرجع بحث ومقارنة وليست مكتباً عقارياً.
+  - type: input
+    id: ad-link
+    attributes:
+      label: رابط الإعلان أو وصفه
+      description: ضع رابط الصفحة مع أي تفاصيل تساعدنا على تحديد الإعلان، مثل المنطقة والسعر والمساحة.
+      placeholder: مثال: المالكي، 170م، 250 ألف دولار
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: ما التصحيح المطلوب؟
+      description: اشرح الخطأ أو المعلومة الناقصة.
+      placeholder: السعر الصحيح، المنطقة، المساحة، نوع الملكية، تكرار، إعلان متوقف...
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: مصدر التصحيح
+      description: أضف نص الإعلان الأصلي أو صورة/رابط إن وجد.
+    validations:
+      required: false
