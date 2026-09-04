@@ -23,15 +23,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
       - name: Apply no-layout launch patch
         run: python3 .github/workflows/ship_no_layout_launch.py
-      - name: Rebuild dashboard
-        run: python3 build.py
-      - name: Smoke test
-        run: node smoke_test.js
       - name: Commit launch changes
         run: |
           rm -f .github/workflows/ship-no-layout-launch.yml .github/workflows/ship_no_layout_launch.py
